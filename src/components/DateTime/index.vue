@@ -12,15 +12,22 @@
 </template>
 <script>
 
-import {calendar} from './config.js'
+import FyCalendar from './FyCalendar.js'
 
 export default {
   components: {
     
   },
+  mounted(){
+    this.Calendar = new FyCalendar()
+  },
+  destroyed(){
+    this.Calendar = null
+  },
   data() {
     return {
      time:[],
+     Calendar:null,
      dateCon:{
      }
     }
@@ -37,7 +44,7 @@ export default {
 
       let key = year + '-' + month
       if (!this.dateCon[key]){
-        this.dateCon[key] = calendar(year,month-1)
+        this.dateCon[key] = this.Calendar.calendar(year,month)
         console.log(this.dateCon[key])
       }
       let obj = this.dateCon[key][num-1] || {} 
