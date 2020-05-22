@@ -1,3 +1,6 @@
+
+import { dataList } from './date.js' //配置 每年国家公布的节假日 + 调休的日期
+
 export default class FyCalendar {
   constructor() {
     // this.el = el
@@ -43,23 +46,24 @@ export default class FyCalendar {
     this.sTermInfo = new Array(0, 21208, 42467, 63836, 85337, 107014, 128867, 150921, 173149, 195551, 218072, 240693, 263343, 285989, 308563, 331033, 353350, 375494, 397447, 419210, 440795, 462224, 483532, 504758);
 
     // 中国传统节日 红色标识
-    this.chinaFtv = new Array("0101*春节", "0115 元宵节", "0505*端午节", "0707 七夕情人节", "0715 中元节", "0815*中秋节", "0909 重阳节", "1208 腊八节", "1223 小年", "1230*除夕");
+    this.chinaFtv = new Array("0101*春节", "0115 元宵节", "0505*端午节", "0707 七夕", "0715 中元节", "0815*中秋节", "0909 重阳节", "1208 腊八节", "1223 小年", "1230*除夕");
 
     // 国际节日 分月 蓝色标识
     this.interFtv = [
       ["0101*元旦"],
       ["0214 情人节"],
-      ["0308 妇女节", "0312 植树节", "0315 消费者权益日", "0321 世界森林日、世界儿歌日", "0322 世界水日", "0323 世界气象日", "0324 世界防治结核病日"],
-      ["0401 愚人节", "0407 世界卫生日", "0422 世界地球日"],
-      ["0501*劳动节", "0504 青年节", "0505 碘缺乏病防治日", "0508 世界红十字日", "0512 国际护士节", "0515 国际家庭日", "0517 世界电信日", "0518 国际博物馆日", "0520 全国学生营养日", "0523 国际牛奶日", "0531 世界无烟日"],
-      ["0601 儿童节", "0605 世界环境日", "0606 全国爱眼日", "0616 防治荒漠化和干旱日", "0623 国际奥林匹克日", "0625 全国土地日", "0626 国际反毒品日"],
-      ["0701 建党节 香港回归纪念 国际建筑日", "0707 中国人民抗日战争纪念日", "0711 世界人口日"],
+      ["0308 妇女节", "0312 植树节", "0315 消费者权益日"],
+      ["0401 愚人节",],
+      ["0501*劳动节", "0504 青年节", ],
+      ["0601 儿童节", ],
+      ["0701 建党节", ],
       ["0801 建军节", "0808 父亲节"],
-      ["0908 国际扫盲日", "0909 毛泽东逝世纪念", "0910 教师节", "0916 国际臭氧层保护日", "0920 国际爱牙日", "0927 世界旅游日", "0928 孔子诞辰"],
-      ["1001*国庆节 国际音乐日", "1004 世界动物日", "1006 老人节", "1008 全国高血压日 世界视觉日", "1009 世界邮政日", "1015 国际盲人节", "1016 世界粮食日", "1017 世界消除贫困日", "1024 联合国日"],
-      ["1108 中国记者日", "1109 消防宣传日", "1112 孙中山诞辰纪念", "1114 世界糖尿病日", "1117 国际大学生节"],
-      ["1201 世界艾滋病日", "1203 世界残疾人日", "1209 世界足球日", "1220 澳门回归纪念", "1225 圣诞节", "1226 毛泽东诞辰纪念", "1229 国际生物多样性日"]
+      ["0910 教师节"],
+      ["1001*国庆节",],
+      [],
+      ["1224 平安夜","1225 圣诞节"]
     ]
+    this.reg = /^(\d{2})(\d{2})(\s|\*)(.+)$/
   }
 
   lYearDays(y) {
@@ -117,6 +121,28 @@ export default class FyCalendar {
     return (s);
   }
 
+  getDateWorkRest(m,dateInfo,arr,style){
+   
+    let reg = /^(\d{2})(\d{2})(.*)$/
+    let date = 0 ,len = 0
+    for (let i in arr){
+      let match = arr[i].match(reg)
+      if (match && match[1] == m + 1) {
+        len = 1
+        date = match[2] -1
+        if (match[3]){
+          len = Number(match[3].replace('*',''))
+        }
+        for (let i = 0; i < len; i++){
+          dateInfo[date][style] = true
+          date++
+        }
+      }
+    }
+    return dateInfo
+  }
+
+
   //  24节气 计算 年 月 月份-1  24节气 绿色 理论上一个月2个节气
   getSolarTerm(year, month, dateInfo) {
 
@@ -131,32 +157,35 @@ export default class FyCalendar {
   }
 
   // 中国传统节日 节日少可以遍历 need check
-  getChaneseDay(day, month, len,lDPOS,n,dateInfo) {
+  getChaneseDay(firstLM, len,lDPOS,n,dateInfo) {
     for (let i in this.chinaFtv)
-      if (this.chinaFtv[i].match(/^(\d{2})(.{2})([+*])(.+)$/)) {
-        let tmp1 = Number(RegExp.$1) - month;
+      if (this.chinaFtv[i].match(this.reg)) {
+        let tmp1 = Number(RegExp.$1) - firstLM;
         if (tmp1 == -11) tmp1 = 1;
         if (tmp1 >= 0 && tmp1 < n) {
           let tmp2 = lDPOS[tmp1] + Number(RegExp.$2) - 1;
           if (tmp2 >= 0 && tmp2 < len) {
-            dateInfo[tmp2].lunarFestival += RegExp.$4 + ' ';
-            dateInfo[tmp2].color = '#ff5f07';
+            let {lMonth,lDay} =dateInfo[tmp2]
+            if (Number(lMonth) == Number(RegExp.$1) &&  Number(lDay) == Number(RegExp.$2)){
+              dateInfo[tmp2].lunarFestival += RegExp.$4 + ' ';
+              dateInfo[tmp2].color = '#C00';
+            }
           }
         }
       }
+    return dateInfo
   }
 
   // 国际节日 need 优化
   getSolarDay(m,dateData) {
 
-    let list = this.interFtv[m]
-    for (let i in list)
-      if (list[i].match(/^(\d{2})(\d{2})([+*])(.+)$/))
-        if (Number(RegExp.$1) == (m + 1)) {
-          let date = Number(RegExp.$2) - 1
-          dateData[date].solarFestival += RegExp.$4 + ' ';
-          dateData[date].color += 'blue'
-        }
+    let list = this.interFtv[m],date;
+    for (let i in list){
+      let match = list[i].match(this.reg)
+      date = Number(match[2]) - 1;
+      dateData[date].solarFestival = match[4] + ' ';
+      dateData[date].color = '#428bca'
+    }
     return dateData
   }
 
@@ -222,12 +251,12 @@ export default class FyCalendar {
   // 初始化一个日期
   calElement(sYear, sMonth, sDay, week, lYear, lMonth, lDay, isLeap, cYear, cMonth, cDay) {
     // S打头是公历、L打头是农历 C打头是干支表示 
+    let isRest = week > 5 || week == 0 ? true : false
     return {
       sYear: sYear,
       sMonth: sMonth,
       sDay: sDay,
       week: this.nStr1[week],
-      isWeek: week,
       lYear: lYear,
       lMonth: lMonth,
       lDay: lDay,
@@ -237,6 +266,9 @@ export default class FyCalendar {
       cMonth: this.cyclical(cMonth),
       cDay: this.cyclical(cDay),
       color: '',
+      isWeek: isRest,
+      isRest: '',
+      isWork: '',
       lunarFestival: '',
       solarFestival: '',
       solarTerms: '',
@@ -248,11 +280,11 @@ export default class FyCalendar {
     var sDObj,
       lDObj,
       lD = 1,
-      lX = 0;
+      lX = 0
   
     var lDPOS = new Array(3);
     var n = 0;
-    // var firstLM = 0;
+    var firstLM = 0;
 
     sDObj = new Date(y, m, 1);
 
@@ -260,39 +292,50 @@ export default class FyCalendar {
     let firstWeek = sDObj.getDay();//本月1号是 周几
 
     let dateData = {}
+    let Y,M,iS,yC,mC,dC
 
     // 遍历 构建信息
     for (var i = 0; i < length; i++) {
 
-      sDObj = new Date(y, m, i + 1);
-      lDObj = this.lunarDate(sDObj);
+      if (lD > lX) { // LX 是农历lenght 农历换月份
+        sDObj = new Date(y, m, i + 1);
+        lDObj = this.lunarDate(sDObj);
 
-      let {
-        year,
-        month,
-        day,
-        isLeap,
-        yearCyl,
-        monCyl,
-        dayCyl
-      } = lDObj
-
-      lD = day;
-
-      if (lD > lX) {
+        let {
+          year,
+          month,
+          day,
+          isLeap,
+          yearCyl,
+          monCyl,
+          dayCyl
+        } = lDObj
+        Y = year
+        M = month
+        lD = day;
+        iS = isLeap
+        yC = yearCyl
+        mC = monCyl
+        dC = dayCyl
         lX = isLeap ? this.leapDays(year) : this.monthDays(year, month);
-        // if (n == 0) firstLM = month;
+        if (n == 0) firstLM = month;
         lDPOS[n++] = i - lD + 1;
       }
 
       let isWeek = (i + firstWeek) % 7
-      dateData[i] = this.calElement(y, m + 1, i + 1, isWeek, year, month, day++, isLeap, yearCyl, monCyl, dayCyl++);
+      dateData[i] = this.calElement(y, m + 1, i + 1, isWeek, Y, M, lD++, iS, yC, mC, dC++);
     }
 
-    dateData = this.getSolarTerm(y, m ,dateData);
     dateData = this.getSolarDay(m,dateData)
-    // dateData = this.getChaneseDay(dateData)
+    dateData = this.getSolarTerm(y, m ,dateData);
+    dateData = this.getChaneseDay(firstLM, length,lDPOS,n,dateData)
     // TODO 法定节假日 补休 节假日 的标识
+
+    let work = dataList[y][0]
+    let rest = dataList[y][1]
+    dateData = this.getDateWorkRest(m,dateData,work,'isWork')
+    dateData = this.getDateWorkRest(m,dateData,rest,'isRest')
+    console.log(dateData)
     return dateData
   }
 }

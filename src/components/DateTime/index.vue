@@ -40,12 +40,10 @@ export default {
     renderDate(current){
       let num = current.date()
       let year = current.year(), month = current.month();
-      let week = current['_d'].getDay()
 
       let key = year + '-' + month
       if (!this.dateCon[key]){
         this.dateCon[key] = this.Calendar.calendar(year,month)
-        console.log(this.dateCon[key])
       }
       let obj = this.dateCon[key][num-1] || {} 
       let {
@@ -53,14 +51,25 @@ export default {
         solarTerms,
         solarFestival,
         zhDay,
+        color,
+        isWeek,
+        isRest,
+        isWork,
       } = obj
 
+
+
       let title = lunarFestival ? lunarFestival : solarTerms ? solarTerms :  solarFestival || zhDay
-      let clss = 'ant-calendar-date'
-      clss = week > 5 || week == 0 ? clss + ' cal-hols' : clss
-      return (<div class={clss} >
+      let csName = ['ant-calendar-date']
+      if (isWeek) csName.push('cal-hols')
+      if (isRest) csName.push('cal-rest')
+      if (isWork) csName.push('cal-work')  
+
+      return (<div class={csName.join(' ')}>
+          {isRest ? <span>休</span> : ''}
+          {isWork ? <span>班</span> : ''}
           <div class="day-num">{num}</div>
-          <div class="day-zh">{title}</div>
+          <div class="day-zh" style={color ? {color:color} : ''}>{title}</div>
         </div>
         );
 
@@ -89,24 +98,35 @@ export default {
     position: relative;
     &.cal-hols{
       color:#e02d2d;
-      background: #fff0f0;
+      background-color:#fff0f0
+    }
+    &.cal-rest{
+      color:#e02d2d;
+      background-color:#fff0f0;
+      span{
+        background:#f43
+      }
+    }
+    &.cal-work{
+      background:#e8e6e6;
+      color:#333;
+      span{
+        background:#666
+      }
     }
     span{
       position: absolute;
       top:0;
       left:0;
+      font-size:12px;
+      height:14px;
+      line-height:12px;
       color:#fff;
-      &.d-work{
-        background:#f43;
-      }
-      &.d-hols{
-        background:#969799;
-      }
     }
     .day-zh{
       font-size:12px;
       white-space: nowrap;
-      overflow: hidden;
+      // overflow: hidden;
     }
   }
 }
