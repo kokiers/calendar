@@ -1,9 +1,9 @@
 <template>
   <div class="my-time"> 
-   
     <a-date-picker 
     show-time 
     @change="onChange" 
+    @panelChange="handlePanel"
     dropdownClassName="my-dates"
     :dateRender="renderDate"
     >
@@ -37,6 +37,15 @@ export default {
       this.time[value,mode]
       console.log(value, mode);
     },
+    handlePanel(value, mode){
+      if (mode === 'date') {
+        let year = value._d.getFullYear(), month = value._d.getMonth();
+        let key = year + '-' + month
+        if (!this.dateCon[key]){
+          this.dateCon[key] = this.Calendar.calendar(year,month)
+        }
+      }
+    },
     renderDate(current){
       let num = current.date()
       let year = current.year(), month = current.month();
@@ -45,6 +54,7 @@ export default {
       if (!this.dateCon[key]){
         this.dateCon[key] = this.Calendar.calendar(year,month)
       }
+     
       let obj = this.dateCon[key][num-1] || {} 
       let {
         lunarFestival,
@@ -56,8 +66,6 @@ export default {
         isRest,
         isWork,
       } = obj
-
-
 
       let title = lunarFestival ? lunarFestival : solarTerms ? solarTerms :  solarFestival || zhDay
       let csName = ['ant-calendar-date']
@@ -90,6 +98,11 @@ export default {
   }
   .ant-calendar-cell{
     height:50px; 
+  }
+  .ant-calendar-selected-day{
+    .ant-calendar-date{
+      background:#bae7ff !important;
+    }
   }
   .ant-calendar-date{
     width: 50px;
@@ -126,7 +139,6 @@ export default {
     .day-zh{
       font-size:12px;
       white-space: nowrap;
-      // overflow: hidden;
     }
   }
 }

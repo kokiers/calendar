@@ -329,13 +329,13 @@ export default class FyCalendar {
     dateData = this.getSolarDay(m,dateData)
     dateData = this.getSolarTerm(y, m ,dateData);
     dateData = this.getChaneseDay(firstLM, length,lDPOS,n,dateData)
-    // TODO 法定节假日 补休 节假日 的标识
-
-    let work = dataList[y][0]
-    let rest = dataList[y][1]
-    dateData = this.getDateWorkRest(m,dateData,work,'isWork')
-    dateData = this.getDateWorkRest(m,dateData,rest,'isRest')
-    console.log(dateData)
+    // 法定节假日 补休 节假日 的标识
+    if (dataList && dataList[y]){
+      let work = dataList[y][0] || []
+      let rest = dataList[y][1] || []
+      dateData = this.getDateWorkRest(m,dateData,work,'isWork')
+      dateData = this.getDateWorkRest(m,dateData,rest,'isRest')
+    }
     return dateData
   }
 }
